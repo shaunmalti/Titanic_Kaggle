@@ -1,45 +1,43 @@
 import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.svm import SVC
 from sklearn.ensemble import RandomForestClassifier
 from sklearn import linear_model
 
-# chain families together - that has an effect on survival rate
-# check for different titles Mr. Mrs. Ms. etc therefore for title check from after , till .
 def main():
-    file = "titanic/train.csv"
-    file_test = "titanic/test.csv"
-    data = pd.read_csv(file, header=0)
+    test = pd.read_csv("./titanic/test.csv")
+    train = pd.read_csv("./titanic/train.csv")
+    figures(train)
+
+# strongest correlation between parch and sibsp
+# followed closely by fare and survived
+def figures(train):
+    describe(train)
+    # correlationMatrix(train)
+    # scatterPlots(train)
 
 
-    data['Name'] = data.Name.str.split('.').str.get(0).str.split(',').str.get(1).replace(' ','').replace('\n','')
-
-    data['Name'] = data['Name'].replace(['Master','Sir','Dr', 'Major','Col'], 'Mr',regex=True)
-    data['Name'] = data['Name'].replace(['Lady','the Countess','Mlle','Mme','Ms'], 'Miss',regex=True)
-    data['Name'] = data['Name'].replace(['Capt',
-                                         'Don', 'Rev', 'Jonkheer'], 'Rare',regex=True)
-
-    null_age_dataframe = data[data['Age'].isnull()] # TODO null_age_dataframe contains rows where age is null
-
-    data = data.dropna(subset=['Age']) # TODO now data contains rows where age is not null
+def describe(data):
+    # print(data.columns.values)
+    # print(data.info())
+    # print(data.describe())
+    print(data[['Survived', 'Pclass']].groupby(['Pclass'], as_index=False).mean().sort_values(by='Survived', ascending=False))
 
 
-    #mapping the name
-    title_mapping = {" Mr": 1, " Miss": 2, " Mrs": 3, " Rare": 4}
-    # data['Name'] = data['Name'].map(title_mapping)
-    data['Name'] = data['Name'].astype(str).replace(' ','')
-    data['NewNameCol'] = pd.Series(data['Name'].map(title_mapping),index=data.index)
+def correlationMatrix(train):
+    corrMatrix = train.corr()
+    sns.heatmap(corrMatrix, annot=True)
+    plt.show()
 
+def scatterPlots(data):
+    # print(data.head())
+    sns.scatterplot(x='Parch', y='SibSp', data=data)
+    plt.show()
+    sns.scatterplot(x='Fare', y='Survived', data=data)
+    plt.show()
 
-    #
-    y_train = data['Age']
-    x_train = data[['Survived','Pclass','Name','NewNameCol']]
-    # ols = linear_model.LinearRegression()
-    # model = ols.fit(x_train,y_train)
-
-    # things that effect the age - if survived, what class, the title (man or woman)
-
-    # first carry out linear regression to determine the age, missing ages are 177/891 = 19.86% of the training data
 
 if __name__ == '__main__':
     main()
