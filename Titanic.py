@@ -22,7 +22,7 @@ def figures(train):
 def describe(data):
     # print(data.columns.values)
     # print(data.info())
-    # print(data.describe())
+    print(data.describe())
     print(data[['Survived', 'Pclass']].groupby(['Pclass'], as_index=False).mean().sort_values(by='Survived', ascending=False))
 
 
