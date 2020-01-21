@@ -17,7 +17,7 @@ def figures(train):
     describe(train)
     # correlationMatrix(train)
     # scatterPlots(train)
-
+#     test123
 
 def describe(data):
     # print(data.columns.values)
