@@ -5,7 +5,7 @@ import numpy as np
 from sklearn.svm import SVC
 from sklearn.ensemble import RandomForestClassifier
 from sklearn import linear_model
-from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import LogisticRegression, LinearRegression
 pd.set_option('display.max_columns', None)
 
 # Following examples set in Titanic Data Science Solutions seen here -> https://www.kaggle.com/startupsci/titanic-data-science-solutions#Titanic-Data-Science-Solutions
@@ -24,6 +24,42 @@ def main():
     engineerFeature(train)
     bucketFareFeature(train)
 
+    replaceTitles(test)
+    convertSex(test)
+    predictAge(test)
+    engineerFeature(test)
+    bucketFareFeature(test)
+    predictSurvived(train, test)
+
+
+def predictSurvived(data_train, data_test):
+    x_train = data_train.drop(['PassengerId', 'AgeBand', 'FareBand', 'Cabin', 'Ticket', 'Survived'], axis=1)
+    y_train = data_train['Survived']
+    # print(x_train.head(10))
+
+    # y_train = data['Survived']
+    # # attempt with logistic regression
+    reg = LogisticRegression()
+    reg.fit(x_train, y_train)
+    acc = round(reg.score(x_train, y_train) * 100)
+    print(acc)
+
+    # print(sdata_test.loc[data_test['Fare'].isnull()])
+    # print(data_test.isnull().sum())
+    # print(data_test.head(10))
+    test = data_test.copy()
+    test = test.drop(['PassengerId', 'AgeBand', 'FareBand', 'Cabin', 'Ticket'], axis=1)
+    # print(test.head(10))
+    pred = reg.predict(test)
+
+    output = pd.DataFrame({
+        "PassengerId": data_test['PassengerId'],
+        "Survived": pred
+    }).to_csv('submission.csv')
+
+
+
+
 def engineerFeature(data):
     # create family size feature and is alone feature
     data['FamilySize'] = data['Parch'] + data['SibSp'] + 1
@@ -32,12 +68,18 @@ def engineerFeature(data):
 
 
 def bucketFareFeature(data):
+
+    if (data.loc[data['Fare'].isna()].shape[0] > 0):
+        # fill na fare
+        data.loc[data['Fare'].isna(), 'Fare'] = data.groupby(['Sex', 'Pclass'])['Fare'].apply(lambda x: x.fillna(x.median()))
+
+
     data['FareBand'] = pd.qcut(data['Fare'], 4)
     data.loc[(data['Fare']) <= 8, 'Fare'] = 0
     data.loc[(data['Fare'] > 8) &  ((data['Fare']) <= 14), 'Fare'] = 1
     data.loc[(data['Fare'] > 14) &  ((data['Fare']) <= 31), 'Fare'] = 2
     data.loc[(data['Fare'] > 31), 'Fare'] = 3
-    print(data.head(10))
+    # print(data.head(10))
 
 # to fill na ages either use median - as seen in https://www.kaggle.com/gunesevitan/titanic-advanced-feature-engineering-tutorial
 def predictAge(data):
@@ -131,11 +173,12 @@ def replaceTitles(data):
     # print(data.isnull().sum())
     # print(data.Name.head(10))
     data['Name'] = data['Name'].replace(['Master', 'Sir', 'Mr'], 0) # mr
-    data['Name'] = data['Name'].replace(['Lady', 'theCountess', 'Mlle', 'Mme', 'Ms', 'Miss'], 1) # ms
+    data['Name'] = data['Name'].replace(['Lady', 'theCountess', 'Mlle', 'Mme', 'Ms', 'Miss', 'Dona'], 1) # ms
     data['Name'] = data['Name'].replace(['Mrs'], 2) # mrs
     data['Name'] = data['Name'].replace(['Capt', 'Col',
                                          'Don', 'Dr', 'Major', 'Rev', 'Jonkheer', 'Don'], 3) # rare
 
+    test = 123
     # print(data.Name.head(10))
     # print(data['Name'].unique())
     # print(data['Name'].unique())
