@@ -6,6 +6,8 @@ from sklearn.svm import SVC
 from sklearn.ensemble import RandomForestClassifier
 from sklearn import linear_model
 from sklearn.linear_model import LogisticRegression, LinearRegression
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
 pd.set_option('display.max_columns', None)
 
 # Following examples set in Titanic Data Science Solutions seen here -> https://www.kaggle.com/startupsci/titanic-data-science-solutions#Titanic-Data-Science-Solutions
@@ -41,21 +43,28 @@ def predictSurvived(data_train, data_test):
     # # attempt with logistic regression
     reg = LogisticRegression()
     reg.fit(x_train, y_train)
-    acc = round(reg.score(x_train, y_train) * 100)
-    print(acc)
+    # acc = round(reg.score(x_train, y_train) * 100)
+    # print(acc)
 
-    # print(sdata_test.loc[data_test['Fare'].isnull()])
-    # print(data_test.isnull().sum())
-    # print(data_test.head(10))
     test = data_test.copy()
     test = test.drop(['PassengerId', 'AgeBand', 'FareBand', 'Cabin', 'Ticket'], axis=1)
-    # print(test.head(10))
-    pred = reg.predict(test)
+    # pred = reg.predict(test)
 
-    output = pd.DataFrame({
+    # next try with decision tree
+    d_t = DecisionTreeClassifier()
+    d_t.fit(x_train, y_train)
+    # pred = d_t.predict(test)
+    # acc_decision_tree = round(d_t.score(x_train, y_train) * 100, 2)
+
+    # final impl with random forests
+    rf = RandomForestClassifier()
+    rf.fit(x_train, y_train)
+    pred = rf.predict(test)
+
+    pd.DataFrame({
         "PassengerId": data_test['PassengerId'],
         "Survived": pred
-    }).to_csv('submission.csv')
+    }).to_csv('submission.csv', index=False)
 
 
 
